@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/netops
+    username: netops
+    password: netops
+  jpa:
+    hibernate:
+      ddl-auto: update   # 开发阶段：自动建表；生产不要用
+    show-sql: true       # 开发期打印 SQL
+    properties:
+      hibernate.format_sql: true
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace   # 打印绑定参数（方便调试）

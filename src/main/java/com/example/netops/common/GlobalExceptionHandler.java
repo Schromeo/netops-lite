@@ -47,12 +47,14 @@ public class GlobalExceptionHandler {
     // ③ 业务异常（你在代码里手动 throw）
     @ExceptionHandler(BizException.class)
     public ResponseEntity<ErrorResponse> handleBiz(BizException ex, HttpServletRequest req) {
+        var status = ex.getStatus() != null ? ex.getStatus() : HttpStatus.BAD_REQUEST;
         ErrorResponse body = new ErrorResponse(
-                java.time.LocalDateTime.now(), req.getRequestURI(),
+                LocalDateTime.now(), req.getRequestURI(),
                 ex.getCode(), ex.getMessage(), null
         );
-        return ResponseEntity.status(ex.getStatus()).body(body);
+        return ResponseEntity.status(status).body(body);
     }
+
 
 
     // ④ 兜底（未预料到的异常）
