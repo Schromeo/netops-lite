@@ -8,6 +8,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -46,11 +48,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BizException.class)
     public ResponseEntity<ErrorResponse> handleBiz(BizException ex, HttpServletRequest req) {
         ErrorResponse body = new ErrorResponse(
-                LocalDateTime.now(), req.getRequestURI(),
+                java.time.LocalDateTime.now(), req.getRequestURI(),
                 ex.getCode(), ex.getMessage(), null
         );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body); // 先统一 400
+        return ResponseEntity.status(ex.getStatus()).body(body);
     }
+
 
     // ④ 兜底（未预料到的异常）
     @ExceptionHandler(Exception.class)
@@ -61,4 +64,21 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body); // 500
     }
+
+
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraint(ConstraintViolationException ex,
+                                                          HttpServletRequest req) {
+        java.util.Map<String, String> errs = new java.util.HashMap<>();
+        for (ConstraintViolation<?> cv : ex.getConstraintViolations()) {
+            errs.put(cv.getPropertyPath().toString(), cv.getMessage());
+        }
+        ErrorResponse body = new ErrorResponse(
+                java.time.LocalDateTime.now(), req.getRequestURI(),
+                "INVALID_PARAM", "参数校验失败", errs
+        );
+        return ResponseEntity.status(org.springframework.http.HttpStatus.BAD_REQUEST).body(body);
+    }
+
 }
